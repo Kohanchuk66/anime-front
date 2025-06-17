@@ -1,88 +1,85 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { User } from '../types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User } from "../types";
+import { authAPI } from "../services/api";
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (username: string, email: string, password: string) => Promise<boolean>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<boolean>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo
-const mockUsers: User[] = [
-  {
-    id: '1',
-    username: 'admin',
-    email: 'admin@aniverse.com',
-    role: 'admin',
-    bio: 'Platform administrator',
-    joinDate: '2023-01-01',
-    isOnline: true,
-    isBanned: false,
-    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=400'
-  },
-  {
-    id: '2',
-    username: 'moderator',
-    email: 'mod@aniverse.com',
-    role: 'moderator',
-    bio: 'Community moderator',
-    joinDate: '2023-02-15',
-    isOnline: true,
-    isBanned: false,
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?w=400'
-  },
-  {
-    id: '3',
-    username: 'animeotaku',
-    email: 'user@aniverse.com',
-    role: 'user',
-    bio: 'Anime enthusiast and collector',
-    joinDate: '2023-03-20',
-    isOnline: false,
-    isBanned: false,
-    avatar: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?w=400'
-  }
-];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for existing token on app load
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock login logic
-    const foundUser = mockUsers.find(u => u.email === email);
-    if (foundUser && password === 'password') {
-      setUser(foundUser);
+    try {
+      const response = await authAPI.login(email, password);
+      const { token, user: userData } = response;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
       return true;
+    } catch (error) {
+      console.error("Login error:", error.response.data.message);
+      return error.response.data.message;
     }
-    return false;
   };
 
-  const register = async (username: string, email: string, password: string): Promise<boolean> => {
-    // Mock registration logic
-    if (mockUsers.find(u => u.email === email || u.username === username)) {
-      return false; // User already exists
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const response = await authAPI.register(username, email, password);
+      const { token, user: userData } = response;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      return true;
+    } catch (error) {
+      console.error("Registration error:", error);
+      return false;
     }
-    
-    const newUser: User = {
-      id: Date.now().toString(),
-      username,
-      email,
-      role: 'user',
-      joinDate: new Date().toISOString().split('T')[0],
-      isOnline: true,
-      isBanned: false
-    };
-    
-    mockUsers.push(newUser);
-    setUser(newUser);
-    return true;
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
@@ -90,17 +87,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
-      
-      // Update in mock users array
-      const userIndex = mockUsers.findIndex(u => u.id === user.id);
-      if (userIndex >= 0) {
-        mockUsers[userIndex] = updatedUser;
-      }
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, updateProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -109,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

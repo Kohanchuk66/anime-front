@@ -1,31 +1,31 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const success = await login(email, password);
-      if (success) {
-        navigate('/');
+      if (success === true) {
+        navigate("/");
       } else {
-        setError('Invalid email or password');
+        setError(success);
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -38,10 +38,15 @@ export function LoginForm() {
           <div className="mx-auto w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-xl">A</span>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-white">Sign in to AniVerse</h2>
+          <h2 className="mt-6 text-3xl font-bold text-white">
+            Sign in to AniVerse
+          </h2>
           <p className="mt-2 text-gray-400">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-purple-400 hover:text-purple-300">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-purple-400 hover:text-purple-300"
+            >
               Sign up
             </Link>
           </p>
@@ -56,7 +61,10 @@ export function LoginForm() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-300"
+              >
                 Email address
               </label>
               <div className="mt-1 relative">
@@ -76,14 +84,17 @@ export function LoginForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-300"
+              >
                 Password
               </label>
               <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
@@ -97,7 +108,11 @@ export function LoginForm() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-300"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -111,7 +126,10 @@ export function LoginForm() {
                 type="checkbox"
                 className="h-4 w-4 text-purple-600 bg-gray-800 border-gray-700 rounded focus:ring-purple-500"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-300"
+              >
                 Remember me
               </label>
             </div>
@@ -129,12 +147,13 @@ export function LoginForm() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </div>
 
           <div className="text-center text-sm text-gray-400">
-            Demo accounts: admin@aniverse.com, mod@aniverse.com, user@aniverse.com (password: password)
+            Demo accounts: admin@aniverse.com, mod@aniverse.com,
+            user@aniverse.com (password: password)
           </div>
         </form>
       </div>

@@ -11,6 +11,7 @@ import { AnimeDetailPage } from './components/Anime/AnimeDetailPage';
 import { WatchlistPage } from './components/Watchlist/WatchlistPage';
 import { NewsPage } from './components/News/NewsPage';
 import { ModerationPage } from './components/Admin/ModerationPage';
+import Profile from './components/Profile/ProfilePage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/watchlists" element={<WatchlistPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/moderation" element={<ModerationPage />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
           <Footer />

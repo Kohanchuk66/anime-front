@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, Bell, Menu, X, LogOut, Settings, BookOpen, Shield } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Search,
+  User,
+  Bell,
+  Menu,
+  X,
+  LogOut,
+  Settings,
+  BookOpen,
+  Shield,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
     setIsProfileMenuOpen(false);
   };
 
@@ -51,14 +61,23 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/catalog" className="text-gray-300 hover:text-white transition-colors">
+            <Link
+              to="/catalog"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
               Catalog
             </Link>
-            <Link to="/news" className="text-gray-300 hover:text-white transition-colors">
+            <Link
+              to="/news"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
               News
             </Link>
             {user && (
-              <Link to="/watchlists" className="text-gray-300 hover:text-white transition-colors">
+              <Link
+                to="/watchlists"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 My Lists
               </Link>
             )}
@@ -68,22 +87,22 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <Bell className="h-5 w-5" />
-                </button>
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
                   >
                     <img
-                      src={user.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=400'}
+                      src={
+                        user.avatar ||
+                        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=400"
+                      }
                       alt={user.username}
                       className="w-8 h-8 rounded-full"
                     />
                     <span className="hidden sm:block">{user.username}</span>
                   </button>
-                  
+
                   {isProfileMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-1">
                       <Link
@@ -110,7 +129,7 @@ export function Header() {
                         <Settings className="h-4 w-4 mr-2" />
                         Settings
                       </Link>
-                      {(user.role === 'moderator' || user.role === 'admin') && (
+                      {(user.role === "moderator" || user.role === "admin") && (
                         <Link
                           to="/moderation"
                           className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -154,7 +173,11 @@ export function Header() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden text-gray-400 hover:text-white"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>

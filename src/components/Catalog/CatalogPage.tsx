@@ -1,78 +1,67 @@
-import React, { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, Grid, List, Star, Calendar, Play } from 'lucide-react';
-import { mockAnime } from '../../data/mockData';
-import { AnimeCard } from './AnimeCard';
-import { AnimeFilters } from './AnimeFilters';
+import { Filter, Grid, List, Search } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { animeAPI } from "../../services/api";
+import { Anime } from "../../types";
+import { AnimeCard } from "./AnimeCard";
+import { AnimeFilters } from "./AnimeFilters";
 
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || ""
+  );
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('rating');
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("rating");
+  const [anime, setAnime] = useState<Anime[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const allGenres = useMemo(() => {
     const genres = new Set<string>();
-    mockAnime.forEach(anime => anime.genres.forEach(genre => genres.add(genre)));
+    anime.forEach((a) => a.genres.forEach((genre) => genres.add(genre)));
     return Array.from(genres).sort();
-  }, []);
+  }, [anime]);
 
-  const filteredAnime = useMemo(() => {
-    let filtered = [...mockAnime];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(anime =>
-        anime.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        anime.synopsis.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        anime.genres.some(genre => genre.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Genre filter
-    if (selectedGenres.length > 0) {
-      filtered = filtered.filter(anime =>
-        selectedGenres.some(genre => anime.genres.includes(genre))
-      );
-    }
-
-    // Status filter
-    if (selectedStatus) {
-      filtered = filtered.filter(anime => anime.status === selectedStatus);
-    }
-
-    // Year filter
-    if (selectedYear) {
-      filtered = filtered.filter(anime => anime.year.toString() === selectedYear);
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating;
-        case 'year':
-          return b.year - a.year;
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'episodes':
-          return b.episodes - a.episodes;
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
+  useEffect(() => {
+    fetchAnime();
   }, [searchQuery, selectedGenres, selectedStatus, selectedYear, sortBy]);
+
+  const fetchAnime = async () => {
+    try {
+      setLoading(true);
+      const params: any = {};
+
+      if (searchQuery) params.search = searchQuery;
+      if (selectedGenres.length > 0) params.genres = selectedGenres.join(",");
+      if (selectedStatus) params.status = selectedStatus;
+      if (selectedYear) params.year = selectedYear;
+      if (sortBy) params.sort = sortBy;
+
+      const data = await animeAPI.getAnime(params);
+      setAnime(data.anime);
+    } catch (error) {
+      console.error("Error fetching anime:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchParams(searchQuery ? { search: searchQuery } : {});
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading anime catalog...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 py-8">
@@ -80,7 +69,7 @@ export function CatalogPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">Anime Catalog</h1>
-          
+
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="mb-6">
             <div className="relative max-w-xl">
@@ -105,33 +94,40 @@ export function CatalogPage() {
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
               </button>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="bg-gray-800 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="rating">Sort by Rating</option>
-                <option value="year">Sort by Year</option>
-                <option value="title">Sort by Title</option>
-                <option value="episodes">Sort by Episodes</option>
+                <option value="latest">Sort by Year</option>
+                <option value="popular">Sort by popular</option>
               </select>
             </div>
 
             <div className="flex items-center space-x-2">
               <span className="text-gray-400 text-sm">
-                {filteredAnime.length} results
+                {anime.length} results
               </span>
               <div className="flex bg-gray-800 rounded-lg p-1">
                 <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded ${viewMode === 'grid' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded ${
+                    viewMode === "grid"
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <Grid className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded ${viewMode === 'list' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded ${
+                    viewMode === "list"
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
                 >
                   <List className="h-4 w-4" />
                 </button>
@@ -154,21 +150,25 @@ export function CatalogPage() {
         )}
 
         {/* Results */}
-        {filteredAnime.length === 0 ? (
+        {anime.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-xl mb-2">No anime found</div>
-            <div className="text-gray-500">Try adjusting your search or filters</div>
+            <div className="text-gray-500">
+              Try adjusting your search or filters
+            </div>
           </div>
         ) : (
-          <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
-              : 'grid-cols-1'
-          }`}>
-            {filteredAnime.map((anime) => (
+          <div
+            className={`grid gap-6 ${
+              viewMode === "grid"
+                ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                : "grid-cols-1"
+            }`}
+          >
+            {anime.map((animeItem) => (
               <AnimeCard
-                key={anime.id}
-                anime={anime}
+                key={animeItem._id}
+                anime={animeItem}
                 viewMode={viewMode}
               />
             ))}

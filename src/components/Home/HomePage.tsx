@@ -1,25 +1,58 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Play, TrendingUp, Star, Users, ArrowRight } from 'lucide-react';
-import { mockAnime, mockNews } from '../../data/mockData';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Play, TrendingUp, Star, Users, ArrowRight } from "lucide-react";
+import { animeAPI, newsAPI } from "../../services/api";
+import { Anime, News } from "../../types";
 
 export function HomePage() {
-  const featuredAnime = mockAnime.slice(0, 3);
-  const trendingAnime = mockAnime.slice(3, 6);
-  const latestNews = mockNews.slice(0, 2);
+  const [featuredAnime, setFeaturedAnime] = useState<Anime[]>([]);
+  const [trendingAnime, setTrendingAnime] = useState<Anime[]>([]);
+  const [latestNews, setLatestNews] = useState<News[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
+
+  const fetchHomeData = async () => {
+    try {
+      setLoading(true);
+      const [animeData, newsData] = await Promise.all([
+        animeAPI.getAnime({ sortBy: "rating" }),
+        newsAPI.getNews(),
+      ]);
+
+      setFeaturedAnime(animeData.slice(0, 3));
+      setTrendingAnime(animeData.slice(3, 6));
+      setLatestNews(newsData.slice(0, 2));
+    } catch (error) {
+      console.error("Error fetching home data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center bg-gradient-to-r from-purple-900 via-blue-900 to-pink-900">
         <div className="absolute inset-0 bg-black/40"></div>
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{
-            backgroundImage: 'url(https://images.pexels.com/photos/3829227/pexels-photo-3829227.jpeg?w=1920)'
+            backgroundImage:
+              "url(https://images.pexels.com/photos/3829227/pexels-photo-3829227.jpeg?w=1920)",
           }}
         ></div>
-        
+
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
             Your Anime
@@ -28,7 +61,8 @@ export function HomePage() {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Discover, track, and discuss your favorite anime with a passionate community of fans worldwide.
+            Discover, track, and discuss your favorite anime with a passionate
+            community of fans worldwide.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -61,7 +95,7 @@ export function HomePage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredAnime.map((anime) => (
               <Link
@@ -115,7 +149,7 @@ export function HomePage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {trendingAnime.map((anime, index) => (
               <Link
@@ -152,7 +186,9 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">10K+</div>
+              <div className="text-4xl font-bold text-purple-400 mb-2">
+                10K+
+              </div>
               <div className="text-gray-300">Anime Titles</div>
             </div>
             <div className="text-center">
@@ -184,7 +220,7 @@ export function HomePage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {latestNews.map((news) => (
               <article
@@ -205,9 +241,7 @@ export function HomePage() {
                   <h3 className="text-xl font-bold text-white mb-3">
                     {news.title}
                   </h3>
-                  <p className="text-gray-300 line-clamp-3">
-                    {news.content}
-                  </p>
+                  <p className="text-gray-300 line-clamp-3">{news.content}</p>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {news.tags.map((tag) => (
                       <span
@@ -232,7 +266,8 @@ export function HomePage() {
             Ready to Join the Community?
           </h2>
           <p className="text-xl text-gray-200 mb-8">
-            Connect with fellow anime fans, discover new series, and share your passion.
+            Connect with fellow anime fans, discover new series, and share your
+            passion.
           </p>
           <Link
             to="/register"
